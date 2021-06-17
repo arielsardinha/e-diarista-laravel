@@ -2,86 +2,117 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DiaristaRequest;
 use App\Models\Diarista;
+use App\Services\ViaCEP;
 use Illuminate\Http\Request;
 
 class DiaristaController extends Controller
 {
+    public function __construct(
+        protected ViaCEP $viaCep
+    ) {      
+    }
+
     /**
      * Lista as diaristas
      *
      * @return void
      */
-    public function index(){
+    public function index()
+    {
         $diaristas = Diarista::get();
+
         return view('index', [
             'diaristas' => $diaristas
         ]);
     }
+
     /**
-     * Mostra o formulario de criação
+     * Mostra o formulário de criação
      *
      * @return void
      */
-    public function create(){
+    public function create()
+    {
         return view('create');
     }
+
     /**
-     * cria uma diarista no banco de dados
+     * Cria uma diarista no banco de dados
      *
      * @param Request $request
      * @return void
      */
-    public function store(Request $request){
-        $dados = $request->except('_token');//nao pega o valor do token
+    public function store(DiaristaRequest $request)
+    {
+        $dados = $request->except('_token');
         $dados['foto_usuario'] = $request->foto_usuario->store('public');
-        //faz upload do arquivo e salva dentro do campo 'foto_usuario'
-        $dados['cpf'] = str_replace(['.' , '-'],'',$dados['cpf']); // remove a mascara
-        $dados['cep'] = str_replace(['-'],'',$dados['cep']); // remove a mascara
-        $dados['telefone'] = str_replace(['(' , ')',' ', '-'],'',$dados['telefone']); // remove a mascara
-        Diarista::create($dados);//recebe os dados que quero criar
-        return redirect()->route('diaristas.index'); // redireciona para a pagina que eu quero
+
+        $dados['cpf'] = str_replace(['.', '-'], '', $dados['cpf']);
+        $dados['cep'] = str_replace('-', '', $dados['cep']);
+        $dados['telefone'] = str_replace(['(', ')', ' ', '-'], '', $dados['telefone']);
+        $dados['codigo_ibge'] = $this->viaCep->buscar($dados['cep'])['ibge'];
+
+        Diarista::create($dados);
+
+        return redirect()->route('diaristas.index');
     }
+
     /**
-     * mostra o formulario de edição populado
+     * Mostra o formulário de edição populado
      *
      * @param integer $id
      * @return void
      */
-    public function edit(int $id){
+    public function edit(int $id)
+    {
         $diarista = Diarista::findOrFail($id);
+
         return view('edit', [
             'diarista' => $diarista
         ]);
     }
+
     /**
-     * atualiza uma diarista no banco de dados
+     * Atualiza uma diarista no banco de dados
      *
      * @param integer $id
      * @param Request $request
      * @return void
      */
-    public function update(int $id, Request $request){
+    public function update(int $id, DiaristaRequest $request)
+    {
         $diarista = Diarista::findOrFail($id);
+
         $dados = $request->except(['_token', '_method']);
-        $dados['cpf'] = str_replace(['.' , '-'],'',$dados['cpf']); // remove a mascara
-        $dados['cep'] = str_replace(['-'],'',$dados['cep']); // remove a mascara
-        $dados['telefone'] = str_replace(['(' , ')',' ', '-'],'',$dados['telefone']); // remove a mascara
-        if($request->hasFile('foto_usuario')){
+
+        $dados['cpf'] = str_replace(['.', '-'], '', $dados['cpf']);
+        $dados['cep'] = str_replace('-', '', $dados['cep']);
+        $dados['telefone'] = str_replace(['(', ')', ' ', '-'], '', $dados['telefone']);
+        $dados['codigo_ibge'] = $this->viaCep->buscar($dados['cep'])['ibge'];
+
+        if ($request->hasFile('foto_usuario')) {
             $dados['foto_usuario'] = $request->foto_usuario->store('public');
-        };
+        }
+
         $diarista->update($dados);
+
         return redirect()->route('diaristas.index');
     }
+
     /**
-     * apaga uma diarista no banco de dados
+     * Apaga uma diarista no banco de dados
      *
      * @param integer $id
      * @return void
      */
-    public function destroy(int $id){
+    public function destroy(int $id)
+    {
         $diarista = Diarista::findOrFail($id);
+
         $diarista->delete();
+
         return redirect()->route('diaristas.index');
     }
 }

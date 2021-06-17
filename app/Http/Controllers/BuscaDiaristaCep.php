@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Diarista;
 use App\Services\ViaCEP;
 use Illuminate\Http\Request;
+use SebastianBergmann\CodeCoverage\Driver\Driver;
 
 class BuscaDiaristaCep extends Controller
 {
@@ -15,7 +17,19 @@ class BuscaDiaristaCep extends Controller
      */
     public function __invoke(Request $request,ViaCEP $viaCEP)
     {
-        $viaCEP->buscar($request->cep);
+        $endereco = $viaCEP->buscar($request->cep);
+        
+        if($endereco === false){
+            return response()->json(['erro'=>'Cep inválido'], 400);
+        }else{
+            
+            return  [
+              "diaristas" => Diarista::buscaPorCodigoIbge($endereco['ibge']),
+              "quantidade_diaristas"=> Diarista::quantidadePorCodigoIbge($endereco['ibge'])
+            ];
+            
+        }
+          
         
     }
 }
