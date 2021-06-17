@@ -1,3 +1,19 @@
+api feita com laravel 
+
+dependencias: 
+composer require guzzlehttp/guzzle  
+composer require clemdesign/php-mask
+
+Instalar o pacote de tradução para pt_BR
+composer require lucascudo/laravel-pt-br-localization --dev
+php artisan vendor:publish --tag=laravel-pt-br-localization
+
+
+
+
+
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
 <p align="center">
